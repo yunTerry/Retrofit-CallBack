@@ -32,13 +32,7 @@ Retrofit通过RxJavaCallAdapter可以直接将返回结果转换为可观察的�
 ```java
 public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
 
-    private Boolean showLoading = true;
-
     public RxSubscribe() {
-    }
-
-    public RxSubscribe(Boolean show) {
-        this.showLoading = show;
     }
 
     protected abstract void onSuccess(T t);
@@ -48,9 +42,7 @@ public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
 
     @Override
     public void onSubscribe(@NonNull Disposable d) {
-        if (showLoading) {
-            // 显示加载中对话框
-        }
+        // 显示加载中对话框
     }
 
     @Override
@@ -81,8 +73,8 @@ public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
     }
 }
 ```
-+ 复写onSuccess抽象方法可以直接拿到剥离后目标对象，这里为使代码更简洁，不强制复写onFailed方法
-+ 另外还可以顺便在onSubscribe和onComplete方法中统一控制加载中对话框的显示与隐藏。
++ 复写onSuccess抽象方法可以直接拿到剥离后目标对象，这里为使代码更简洁，不强制复写onSubscribe、onFailed等方法
++ 另外可以顺便在onSubscribe和onComplete方法中控制加载中对话框的显示与隐藏。
 
 ## 普通回调的封装
 

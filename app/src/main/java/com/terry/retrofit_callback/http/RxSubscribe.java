@@ -17,13 +17,7 @@ import io.reactivex.disposables.Disposable;
 
 public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
 
-    private Boolean showLoading = true;
-
     public RxSubscribe() {
-    }
-
-    public RxSubscribe(Boolean show) {
-        this.showLoading = show;
     }
 
     protected abstract void onSuccess(T t);
@@ -33,9 +27,7 @@ public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
 
     @Override
     public void onSubscribe(@NonNull Disposable d) {
-        if (showLoading) {
-            // 显示加载中对话框
-        }
+        // 显示加载中对话框
     }
 
     @Override

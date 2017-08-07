@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.terry.retrofit_callback.http.BaseBack;
@@ -12,6 +13,8 @@ import com.terry.retrofit_callback.http.RxSubscribe;
 import com.terry.retrofit_callback.http.User;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -25,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private Button button2;
     private TextView textView;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         button2 = (Button) findViewById(R.id.button2);
         button2.setOnClickListener(this);
         textView = (TextView) findViewById(R.id.textView);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
     }
 
     @Override
@@ -50,14 +55,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new RxSubscribe<User>() {
                             @Override
+                            public void onSubscribe(@NonNull Disposable d) {
+                                progressBar.setVisibility(View.VISIBLE);
+                            }
+
+                            @Override
                             protected void onSuccess(User user) {
                                 textView.setText("使用了Rxjava的回调封装，返回结果：\n" +
                                         user.toString());
                             }
 
                             @Override
-                            protected void onFailed(int code, String msg) {
-
+                            public void onComplete() {
+                                progressBar.setVisibility(View.GONE);
                             }
                         });
                 break;
