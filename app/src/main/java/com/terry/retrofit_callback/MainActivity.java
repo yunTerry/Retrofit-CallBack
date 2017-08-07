@@ -6,6 +6,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.terry.retrofit_callback.http.BaseBack;
+import com.terry.retrofit_callback.http.Rest;
+import com.terry.retrofit_callback.http.RxSubscribe;
+import com.terry.retrofit_callback.http.User;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     /**
@@ -37,8 +45,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.rxbutton:
+                Rest.getRestApi().getRxUser()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new RxSubscribe<User>() {
+                            @Override
+                            protected void onSuccess(User user) {
+                                textView.setText("使用了Rxjava的回调封装，返回结果：\n" +
+                                        user.toString());
+                            }
+
+                            @Override
+                            protected void onFailed(int code, String msg) {
+
+                            }
+                        });
                 break;
             case R.id.button2:
+                Rest.getRestApi().getUser().enqueue(new BaseBack<User>() {
+                    @Override
+                    protected void onSuccess(User user) {
+                        textView.setText("普通回调封装，返回结果：\n" +
+                                user.toString());
+                    }
+                });
                 break;
         }
     }
