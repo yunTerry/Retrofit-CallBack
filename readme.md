@@ -1,5 +1,5 @@
 
-## Retrofit的两种回调封装
+## Retrofit回调封装的意义
 
 在Android的世界里，可以说 [Retrofit](https://github.com/square/retrofit) 已经一统网络请求的江湖，Retrofit和Spring Cloud中的feign一样都是声明式REST请求客户端，都提供了大量注解和完善的json对象转换机制，同时不失灵活性。
 
@@ -20,13 +20,14 @@ Android端拿到这个对象通常要判断code，然后做对象剥离、token�
 
 ## 使用Rxjava的回调封装
 
-Retrofit通过RxJavaCallAdapter可以直接将返回结果转换为可观察的对象，拿到Observable进行一系列链式处理就方便多了。
+Retrofit通过RxJava2CallAdapter可以直接将返回结果转换为可观察的对象，拿到Observable进行一系列链式处理就方便多了。
 比如声明一个API调用方法：
 ```java
     @GET("/userinfo")
     Observable<BaseModel<User>> getRxUser();
 ```
-我们通过一个实现Observer接口的抽象类对返回结果进行处理，实现对象剥离、token有效性判断、网络故障的统一处理，注意这里使用的是RxJava2
+
+我们通过一个实现Observer接口的抽象类对返回结果进行处理，实现对象剥离、token有效性判断、网络故障的统一处理。
 
 完整封装代码：
 ```java
@@ -42,12 +43,12 @@ public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
 
     @Override
     public void onSubscribe(@NonNull Disposable d) {
-        // 显示加载中对话框
+        // 比如显示加载中对话框
     }
 
     @Override
     public void onComplete() {
-        // 隐藏加载中对话框
+        // 比如隐藏加载中对话框
     }
 
     @Override
@@ -67,14 +68,32 @@ public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
         if (t instanceof ConnectException) {
             //网络连接失败
             onFailed(403, t.getMessage());
+        } else if (t instanceof HttpException) {
+            HttpException ex = (HttpException) t;
+            onFailed(ex.code(), ex.message());
         } else {
             onFailed(405, t.getMessage());
         }
     }
 }
 ```
-+ 复写onSuccess抽象方法可以直接拿到剥离后目标对象，这里为使代码更简洁，不强制复写onSubscribe、onFailed等方法
-+ 另外可以顺便在onSubscribe和onComplete方法中控制加载中对话框的显示与隐藏。
+注意这里使用的是RxJava2，为使代码更简洁，不强制复写onSubscribe、onFailed等方法。
+
+请求回调部分，复写onSuccess抽象方法就可以直接拿到剥离后目标对象：
+
+```java
+Rest.getRestApi().getRxUser()
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new RxSubscribe<User>() {
+              @Override
+              protected void onSuccess(User user) {
+
+              }
+        });
+```
+
+> 还可以复写onSubscribe和onComplete方法控制加载中对话框的显示与隐藏。
 
 ## 普通回调的封装
 
@@ -118,12 +137,25 @@ public abstract class BaseBack<T> implements Callback<BaseModel<T>> {
         if (t instanceof ConnectException) {
             //网络连接失败
             onFailed(403, t.getMessage());
+        } else if (t instanceof HttpException) {
+            HttpException ex = (HttpException) t;
+            onFailed(ex.code(), ex.message());
         } else {
             onFailed(405, t.getMessage());
         }
     }
 }
 ```
-同样是复写onSuccess抽象方法直接拿到剥离后的目标对象。
+同样是复写onSuccess方法直接拿到剥离后的目标对象:
+
+```java
+Rest.getRestApi().getUser()
+        .enqueue(new BaseBack<User>() {
+             @Override
+             protected void onSuccess(User user) {
+
+             }
+});
+```
 
 ### 项目使用的后端服务：[spring-cloud-netflix](https://github.com/yunTerry/spring-cloud-netflix)

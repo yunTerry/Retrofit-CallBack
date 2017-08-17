@@ -4,6 +4,7 @@ import java.net.ConnectException;
 
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.HttpException;
 import retrofit2.Response;
 
 /**
@@ -46,6 +47,9 @@ public abstract class BaseBack<T> implements Callback<BaseModel<T>> {
         if (t instanceof ConnectException) {
             //网络连接失败
             onFailed(403, t.getMessage());
+        } else if (t instanceof HttpException) {
+            HttpException ex = (HttpException) t;
+            onFailed(ex.code(), ex.message());
         } else {
             onFailed(405, t.getMessage());
         }

@@ -69,16 +69,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             public void onComplete() {
                                 progressBar.setVisibility(View.GONE);
                             }
+
+                            @Override
+                            protected void onFailed(int code, String msg) {
+                                textView.setText(code + "  " + msg);
+                                progressBar.setVisibility(View.GONE);
+                            }
                         });
                 break;
             case R.id.button2:
-                Rest.getRestApi().getUser().enqueue(new BaseBack<User>() {
-                    @Override
-                    protected void onSuccess(User user) {
-                        textView.setText("普通回调封装，返回结果：\n" +
-                                user.toString());
-                    }
-                });
+                Rest.getRestApi().getUser()
+                        .enqueue(new BaseBack<User>() {
+                            @Override
+                            protected void onSuccess(User user) {
+                                textView.setText("普通回调封装，返回结果：\n" +
+                                        user.toString());
+                            }
+
+                            @Override
+                            protected void onFailed(int code, String msg) {
+                                textView.setText(code + "  " + msg);
+                            }
+                        });
                 break;
         }
     }
