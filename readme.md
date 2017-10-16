@@ -1,7 +1,7 @@
 
 ## Retrofit回调封装的意义
 
-在Android的世界里，可以说 [Retrofit](https://github.com/square/retrofit) 已经一统网络请求的江湖，Retrofit和Spring Cloud中的feign一样都是声明式REST请求客户端，都提供了大量注解和完善的json对象转换机制，同时不失灵活性。
+在Android的世界里，可以说 [Retrofit](https://github.com/square/retrofit) 已经一统网络请求的江湖，Retrofit和Spring Cloud中的 [Feign](https://github.com/OpenFeign/feign) 一样都是声明式REST请求客户端，都提供了大量注解和完善的json对象转换机制，同时不失灵活性。
 
 通常服务端返回都是这种统一格式的对象：
 ```java
@@ -16,7 +16,7 @@ public class BaseModel<T> {
 
 Android端拿到这个对象通常要判断code，然后做对象剥离、token有效性判断、网络故障处理等，这些如果封装起来统一处理，可以极大简化网络调用。
 
-这里我根据自己实际开发经验，对使用了Rxjava的回调和普通回调分别作了封装，实现以上功能。
+这里根据实际开发经验，对使用了Rxjava的回调和普通回调分别作了封装，实现以上功能。
 
 ## 使用Rxjava的回调封装
 
@@ -43,12 +43,10 @@ public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
 
     @Override
     public void onSubscribe(@NonNull Disposable d) {
-        // 比如显示加载中对话框
     }
 
     @Override
     public void onComplete() {
-        // 比如隐藏加载中对话框
     }
 
     @Override
@@ -66,7 +64,6 @@ public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
     @Override
     public void onError(Throwable t) {
         if (t instanceof ConnectException) {
-            //网络连接失败
             onFailed(403, t.getMessage());
         } else if (t instanceof HttpException) {
             HttpException ex = (HttpException) t;
@@ -83,17 +80,17 @@ public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
 
 ```java
 Rest.getRestApi().getRxUser()
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new RxSubscribe<User>() {
-              @Override
-              protected void onSuccess(User user) {
+    .subscribeOn(Schedulers.io())
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(new RxSubscribe<User>() {
+          @Override
+          protected void onSuccess(User user) {
 
-              }
-        });
+          }
+    });
 ```
 
-> 还可以复写onSubscribe和onComplete方法控制加载中对话框的显示与隐藏。
+> 还可以复写onSubscribe和onComplete等方法中控制加载中对话框的显示与隐藏。
 
 ## 普通回调的封装
 
@@ -135,7 +132,6 @@ public abstract class BaseBack<T> implements Callback<BaseModel<T>> {
     @Override
     public void onFailure(Call<BaseModel<T>> call, Throwable t) {
         if (t instanceof ConnectException) {
-            //网络连接失败
             onFailed(403, t.getMessage());
         } else if (t instanceof HttpException) {
             HttpException ex = (HttpException) t;
@@ -150,12 +146,12 @@ public abstract class BaseBack<T> implements Callback<BaseModel<T>> {
 
 ```java
 Rest.getRestApi().getUser()
-        .enqueue(new BaseBack<User>() {
-             @Override
-             protected void onSuccess(User user) {
+    .enqueue(new BaseBack<User>() {
+         @Override
+         protected void onSuccess(User user) {
 
-             }
+         }
 });
 ```
 
-### 项目使用的后端服务：[spring-cloud-netflix](https://github.com/yunTerry/spring-cloud-netflix)
+项目使用的后端服务：[spring-cloud-netflix](https://github.com/yunTerry/spring-cloud-netflix)
