@@ -38,9 +38,9 @@ public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
 
     @Override
     public void onNext(BaseModel<T> baseModel) {
-        if (baseModel.code == 200) {
+        if (baseModel.code == 0) {
             onSuccess(baseModel.data);
-        } else if (baseModel.code == 303) {
+        } else if (baseModel.code == 3) {
             //比如 做token无效统一处理
             onFailed(baseModel.code, baseModel.message);
         } else {
@@ -50,14 +50,11 @@ public abstract class RxSubscribe<T> implements Observer<BaseModel<T>> {
 
     @Override
     public void onError(Throwable t) {
-        if (t instanceof ConnectException) {
-            //网络连接失败
-            onFailed(403, t.getMessage());
-        } else if (t instanceof HttpException) {
+        if (t instanceof HttpException) {
             HttpException ex = (HttpException) t;
             onFailed(ex.code(), ex.message());
         } else {
-            onFailed(405, t.getMessage());
+            onFailed(-1, t.getMessage());
         }
     }
 }
